@@ -1,0 +1,89 @@
+api:
+  image: tinbox_api
+  command: runserver 0.0.0.0:8000
+  restart: always
+  ports:
+    - "8000:8000"
+  links:
+    - elasticsearch
+    - postgres
+    - redis
+  volumes_from:
+    - www_data
+  environment:
+    DJANGO_SETTINGS_MODULE: "trak.settings.live"
+    DATABASE_URI: "pgsql://postgres@postgres/postgres"
+    REDIS_HOST: "redis"
+    ELASTICSEARCH_HOST: "elasticsearch"
+    CELERY_ALWAYS_EAGER: "True"
+    CELERY_BROKER_URL: "amqp://guest:guest@rabbitmq:5672"
+    WWW_ROOT: "/srv/www"
+    OAUTH2_PRIVATE_KEY: ""
+    OAUTH2_PUBLIC_KEY: ""
+
+app:
+  image: tinbox_app
+
+mx:
+  image: tinbox_mx
+  command: "import -v --subscribe -u trak@5monkeys.se -p traktrak"
+  links:
+    - nginx
+  environment:
+    TINBOX_API_URL: "http://nginx/api/"
+    TINBOX_CLIENT_ID: "foo"
+    TINBOX_CLIENT_SECRET: "bar"
+
+socker:
+  image: 5monkeys/socker
+  command: "-v --redis-host=redis"
+  links:
+    - redis
+
+nginx:
+  build: nginx
+  ports:
+    - "80:80"
+  links:
+    - api
+    - socker
+  volumes_from:
+    - www_data
+    - app
+
+www_data:
+  image: busybox
+  volumes:
+    - /srv/www/tinbox:/srv/www
+    - /tmp/nginx:/var/cache/nginx  # ignore nginx cache
+
+postgres:
+  # TODO: Use data container
+  build: postgres
+  volumes:
+    - /var/lib/postgresql/data/tinbox:/var/lib/postgresql/data
+
+elasticsearch:
+  # TODO: Add custom elasticsearch.yml
+  # TODO: Use data container
+  build: elasticsearch
+  ports:
+    - "9200:9200"
+  volumes:
+    - /var/lib/elasticsearch/data/tinbox:/usr/share/elasticsearch/data
+    # - elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+
+redis:
+  # TODO: redis still creates /tmp/appendonly.aof
+  build: redis
+  volumes:
+    - /tmp/redis:/data  # persistence disabled in redis.conf, ignore exposed volume
+
+rabbitmq:
+  # TODO: Use data container
+  image: rabbitmq:3.5-management
+  hostname: mq  # important, rabbit uses hostname as node name
+  ports:
+    - "15672:15672"
+  volumes:
+    - /var/lib/rabbitmq/tinbox:/var/lib/rabbitmq
