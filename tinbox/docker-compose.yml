@@ -26,10 +26,12 @@ app:
 
 mx:
   image: tinbox_mx
-  command: "import -v --subscribe -u trak@5monkeys.se -p traktrak"
+  command: "import -v --subscribe"
   links:
     - nginx
   environment:
+    IMAP_USERNAME: foo@example.com
+    IMAP_PASSWORD: bar
     TINBOX_API_URL: "http://nginx/api/"
     TINBOX_CLIENT_ID: "foo"
     TINBOX_CLIENT_SECRET: "bar"
