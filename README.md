@@ -82,3 +82,8 @@ Rebuild (only) nginx container to get new app container data:
 ``` sh
 docker-compose up --force-recreate --no-deps -d nginx
 ```
+
+Remove dangling images:
+``` sh
+docker rmi $(docker images --quiet --filter "dangling=true")
+```
