@@ -49,6 +49,7 @@ Build remaining images (nginx, db, etc.):
 ``` sh
 cd <tinbox-docker repo>/tinbox
 docker-compose build
+mkdir -p /var/lib/docker/volumes/tinbox
 ```
 
 Migrate database and collect static assets
