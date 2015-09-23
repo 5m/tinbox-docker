@@ -56,14 +56,14 @@ nginx:
 www_data:
   image: busybox
   volumes:
-    - /srv/www/tinbox:/srv/www
-    - /tmp/nginx:/var/cache/nginx  # ignore nginx cache
+    - /var/lib/docker/volumes/tinbox/www-data:/srv/www
+    - /var/lib/docker/volumes/tinbox/nginx:/var/cache/nginx
 
 postgres:
   # TODO: Use data container
   build: postgres
   volumes:
-    - /var/lib/postgresql/data/tinbox:/var/lib/postgresql/data
+    - /var/lib/docker/volumes/tinbox/postgres:/var/lib/postgresql/data
 
 elasticsearch:
   # TODO: Add custom elasticsearch.yml
@@ -72,14 +72,14 @@ elasticsearch:
   ports:
     - "9200:9200"
   volumes:
-    - /var/lib/elasticsearch/data/tinbox:/usr/share/elasticsearch/data
+    - /var/lib/docker/volumes/tinbox/elasticsearch:/usr/share/elasticsearch/data
     # - elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
 
 redis:
   # TODO: redis still creates /tmp/appendonly.aof
   build: redis
   volumes:
-    - /tmp/redis:/data  # persistence disabled in redis.conf, ignore exposed volume
+    - /var/lib/docker/volumes/tinbox/redis:/data  # persistence disabled in redis.conf, ignore exposed volume
 
 rabbitmq:
   # TODO: Use data container
@@ -88,4 +88,4 @@ rabbitmq:
   ports:
     - "15672:15672"
   volumes:
-    - /var/lib/rabbitmq/tinbox:/var/lib/rabbitmq
+    - /var/lib/docker/volumes/tinbox/rabbitmq:/var/lib/rabbitmq
